@@ -1,0 +1,95 @@
+@startuml diagrama_caso_de_uso_ecommerce
+
+left to right direction
+skinparam packageStyle folder
+skinparam linetype ortho
+skinparam shadowing true
+
+' ============================================================
+' ATORES
+' ============================================================
+actor "Cliente"               as Cliente
+actor "Vendedor"              as Vendedor
+actor "Administrador"         as Admin
+actor "Gateway de Pagamentos" as Gateway
+
+' ============================================================
+' FRONTEIRA DO SISTEMA
+' ============================================================
+rectangle "Ecommerce" {
+
+  usecase "Login"                 as UC_Login
+
+  ' --- Cliente ---
+  usecase "Cadastrar conta"       as UC_CadConta
+  usecase "Buscar produtos"       as UC_Buscar
+  usecase "Visualizar produto"    as UC_Visualizar
+  usecase "Adicionar ao carrinho" as UC_Carrinho
+  usecase "Comprar"               as UC_Comprar
+  usecase "Acompanhar pedido"     as UC_Acompanhar
+  usecase "Cancelar pedido"       as UC_Cancelar
+  usecase "Processar pagamento"   as UC_Processar
+
+  ' --- Vendedor ---
+  usecase "Cadastrar produto"     as UC_CadProduto
+  usecase "Editar produto"        as UC_EditProduto
+  usecase "Gerenciar estoque"     as UC_Estoque
+  usecase "Gerenciar pedidos"     as UC_Pedidos
+  usecase "Consultar vendas"      as UC_Vendas
+  usecase "Estornar pagamento"    as UC_Estornar
+
+  ' --- Administrador ---
+  usecase "Cadastrar vendedor"    as UC_CadVendedor
+}
+
+' ============================================================
+' ASSOCIAÇÕES - ATORES PRIMÁRIOS
+' ============================================================
+Cliente -- UC_CadConta
+Cliente -- UC_Buscar
+Cliente -- UC_Visualizar
+Cliente -- UC_Carrinho
+Cliente -- UC_Comprar
+Cliente -- UC_Acompanhar
+Cliente -- UC_Cancelar
+
+Vendedor -- UC_CadProduto
+Vendedor -- UC_EditProduto
+Vendedor -- UC_Estoque
+Vendedor -- UC_Pedidos
+Vendedor -- UC_Vendas
+Vendedor -- UC_Estornar
+
+Admin -- UC_CadVendedor
+
+' ============================================================
+' ASSOCIAÇÕES - ATOR SECUNDÁRIO
+' A seta indica que o sistema é quem aciona o Gateway
+' ============================================================
+UC_Processar --> Gateway
+UC_Estornar  --> Gateway
+
+' ============================================================
+' RELACIONAMENTOS ENTRE CASOS DE USO
+' ============================================================
+UC_Comprar   ..> UC_Processar  : <<include>>
+
+UC_Comprar     ..> UC_Login : <<include>>
+UC_Acompanhar  ..> UC_Login : <<include>>
+UC_Cancelar    ..> UC_Login : <<include>>
+UC_CadProduto  ..> UC_Login : <<include>>
+UC_EditProduto ..> UC_Login : <<include>>
+UC_Estoque     ..> UC_Login : <<include>>
+UC_Pedidos     ..> UC_Login : <<include>>
+UC_Vendas      ..> UC_Login : <<include>>
+UC_Estornar    ..> UC_Login : <<include>>
+UC_CadVendedor ..> UC_Login : <<include>>
+
+' ============================================================
+' PENDÊNCIAS - descomente conforme decidir
+' ============================================================
+' Admin -- UC_Login
+' UC_Carrinho ..> UC_Login : <<include>>
+' UC_Cancelar ..> UC_Estornar : <<include>>
+
+@enduml
