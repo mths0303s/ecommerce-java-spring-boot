@@ -1,0 +1,163 @@
+@startuml diagrama_classe_ecommerce
+skinparam classAttributeIconSize 0
+
+class Produto {
+  - id: int
+  - nome: String
+  - preco: BigDecimal
+  - descricao: String
+  - quantidade_estoque: int
+  + editarNomeProduto(novo_nome: String): void
+  + editarDescricaoProduto(nova_descricao: String): void
+  + atualizarPreco(novo_preco: BigDecimal): void
+  + atualizarEstoque(nova_quantidade: int): void
+}
+
+class ItemCarrinho {
+  - quantidade: int
+  + calcularSubtotal(): BigDecimal
+}
+
+interface EstadoPedido {
+  + pagar(pedido: Pedido): void
+  + enviar(pedido: Pedido): void
+  + cancelar(pedido: Pedido): void
+}
+
+class AguardandoPagamento implements EstadoPedido
+class Pago implements EstadoPedido
+class EmSeparacao implements EstadoPedido
+class Enviado implements EstadoPedido
+class Entregue implements EstadoPedido
+class Cancelado implements EstadoPedido
+
+class Pedido {
+  - id: int
+  - data: Date
+  - estado: EstadoPedido
+  + calcularTotal(): BigDecimal
+  + realizarPagamento(forma: TipoPagamento): Pagamento
+  + adicionarObservador(obs: ObservadorPedido): void
+  + notificarObservadores(): void
+}
+
+enum TipoPagamento {
+  CARTAO_CREDITO
+  BOLETO
+  PIX
+}
+
+class ItemPedido {
+  - id: int
+  - quantidade: int
+  - preco_unitario: BigDecimal
+  + calcularSubtotal(): BigDecimal
+}
+
+enum StatusPagamento {
+  PENDENTE
+  PAGO
+  ESTORNADO
+  RECUSADO
+}
+
+class Pagamento {
+  - id: int
+  - data: Date
+  - valor: BigDecimal
+  - status: StatusPagamento
+  - forma_pagamento: TipoPagamento
+  + processarPagamento(): void
+  + estornarPagamento(): void
+}
+
+class Carrinho {
+  - id: int
+  + adicionarItem(item: ItemCarrinho): void
+  + removerItem(item: ItemCarrinho): void
+  + calcularTotal(): BigDecimal
+}
+
+interface GatewayPagamento {
+  + autorizar(valor: BigDecimal, forma: TipoPagamento): boolean
+  + estornar(idTransacao: String): boolean
+}
+
+class MercadoPagoGateway implements GatewayPagamento
+class PayPalGateway implements GatewayPagamento
+class StripeGateway implements GatewayPagamento
+
+class GatewayFactory {
+  + {static} criar(forma: TipoPagamento): GatewayPagamento
+}
+
+interface ProdutoRepository {
+  + buscarPorId(id: int): Produto
+  + buscarPorFiltro(filtro: String): List<Produto>
+  + salvar(produto: Produto): void
+  + remover(id: int): void
+}
+
+interface PedidoRepository {
+  + buscarPorId(id: int): Pedido
+  + buscarPorCliente(cliente: Cliente): List<Pedido>
+  + salvar(pedido: Pedido): void
+}
+
+interface ObservadorPedido {
+  + atualizar(pedido: Pedido): void
+}
+
+class NotificadorEmail implements ObservadorPedido
+class NotificadorSMS implements ObservadorPedido
+
+Cliente --|> Usuario
+Administrador --|> Usuario
+Vendedor --|> Usuario
+
+Cliente "1" -- "0..*" Pedido : realiza
+Cliente "1" -- "1" Carrinho : possui
+Cliente ..> ProdutoRepository : usa
+Administrador "1" -- "0..*" Vendedor : cria
+Vendedor "1" -- "0..*" Pedido : atende
+Vendedor ..> PedidoRepository : usa
+Vendedor ..> ProdutoRepository : usa
+Pedido "1" *-- "1..*" ItemPedido : contém
+Pedido "1" -- "0..1" Pagamento : possui
+Pedido "1" --> "1" EstadoPedido : estado
+Pedido "1" o-- "0..*" ObservadorPedido : observadores
+Carrinho "1" --> "0..*" Pedido : gera
+Carrinho "1" *-- "0..*" ItemCarrinho : contém
+ItemPedido "*" --> "1" Produto : referência
+ItemCarrinho "*" --> "1" Produto : referência
+Pagamento --> GatewayFactory : usa
+GatewayFactory ..> GatewayPagamento : cria
+ProdutoRepository ..> Produto
+PedidoRepository ..> Pedido
+
+class Cliente {
+  - endereco: String
+  + cadastrarConta(nome: String, email: String): void
+  + acompanharPedido(pedido: Pedido): void
+  + realizarPedido(pedido: Pedido): void
+  + cancelarPedido(pedido: Pedido): void
+}
+
+class Vendedor {
+  + cadastrarProduto(nome_produto: String, preco: BigDecimal, quantidade_estoque: int, descricao: String): void
+  + removerProduto(id_produto: int): void
+}
+
+class Administrador {
+  + adicionarVendedor(nome: String, email: String): void
+  + removerVendedor(id: int, motivo: String): void
+}
+
+abstract class Usuario {
+  - id: int
+  - nome: String
+  - email: String
+  - hash_senha: String
+  + autenticar(senha: String): Boolean
+}
+@enduml
